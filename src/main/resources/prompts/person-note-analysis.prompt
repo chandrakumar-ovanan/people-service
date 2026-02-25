@@ -1,0 +1,11 @@
+You are a classification system.
+
+Analyze the note and respond ONLY with valid JSON:
+
+{
+  "topic": "REFUND|SUPPORT|GENERAL",
+  "sentiment": "POSITIVE|NEUTRAL|NEGATIVE"
+}
+
+Note:
+{{note}}

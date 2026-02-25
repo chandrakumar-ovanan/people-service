@@ -1,0 +1,369 @@
+openapi: 3.0.3
+
+info:
+  title: People API
+  version: 1.0.0
+  description: REST API for managing people using Spring Boot 3, validation, and RFC 7807 Problem Details
+
+tags:
+  - name: People
+    description: Operations on people
+
+paths:
+
+  /api/v1/people:
+    get:
+      tags: [People]
+      summary: List people
+      operationId: listPeople
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-based)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: Page size
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: People retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PeoplePage"
+
+    post:
+      tags: [People]
+      summary: Create person
+      operationId: createPerson
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonRequest"
+      responses:
+        "201":
+          description: Person created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+        "400":
+          description: Validation error
+          content:
+            application/problem+json:
+              schema:
+                type: object
+
+  /api/v1/people/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Person identifier
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [People]
+      summary: Get person by ID
+      operationId: getPerson
+      responses:
+        "200":
+          description: Person found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+        "404":
+          description: Person not found
+          content:
+            application/problem+json:
+              schema:
+                type: object
+
+    put:
+      tags: [People]
+      summary: Replace person
+      operationId: replacePerson
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonRequest"
+      responses:
+        "200":
+          description: Person replaced
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+        "400":
+          description: Validation error
+          content:
+            application/problem+json:
+              schema:
+                type: object
+        "404":
+          description: Person not found
+          content:
+            application/problem+json:
+              schema:
+                type: object
+
+    delete:
+      tags: [People]
+      summary: Delete person
+      operationId: deletePerson
+      responses:
+        "204":
+          description: Person deleted
+        "404":
+          description: Person not found
+          content:
+            application/problem+json:
+              schema:
+                type: object
+  /api/v1/people/{id}/note:
+    patch:
+      summary: Update internal note for a person
+      description: >
+        Updates the internal note for a person.
+        AI analysis (topic & sentiment) is triggered asynchronously.
+      operationId: updatePersonNote
+      tags:
+        - People
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonNoteRequest"
+      responses:
+        "200":
+          description: Note updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+        "404":
+          description: Person not found
+  /api/v1/people/action-suggestion:
+    get:
+      summary: Suggest an action based on similar past cases
+      operationId: getPeopleActionSuggestion
+      tags:
+        - People
+      parameters:
+        - name: text
+          in: query
+          required: true
+          schema:
+            type: string
+            example: customer charged twice and very angry
+      responses:
+        "200":
+          description: Action suggestion result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionSuggestionResponse"
+              example:
+                input: customer charged twice and very angry
+                action:
+                  code: UPDATED
+                  label: Update customer record
+                  description: Modify billing or profile information
+                confidence:
+                  level: HIGH
+                  score: 0.82
+                  label: High confidence
+                basedOn:
+                  count: 3
+                  similarCases:
+                    - personId: c3a1e2b4-91d2-4e5c-a112-9f1c0c77a111
+                      note: Customer charged twice
+                      similarity: 0.93
+                      actionTaken: UPDATED
+
+components:
+  schemas:
+
+    ActionSuggestionResponse:
+      type: object
+      required:
+        - input
+        - action
+        - confidence
+        - basedOn
+      properties:
+        input:
+          type: string
+        action:
+          $ref: "#/components/schemas/ActionInfo"
+        confidence:
+          $ref: "#/components/schemas/ConfidenceInfo"
+        basedOn:
+          $ref: "#/components/schemas/BasedOn"
+
+    ActionInfo:
+      type: object
+      required:
+        - code
+        - label
+        - description
+      properties:
+        code:
+          type: string
+          example: UPDATED
+        label:
+          type: string
+          example: Update customer record
+        description:
+          type: string
+          example: Modify billing or profile information
+
+    ConfidenceInfo:
+      type: object
+      required:
+        - level
+        - score
+        - label
+      properties:
+        level:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          example: 0.82
+        label:
+          type: string
+          example: High confidence
+
+    BasedOn:
+      type: object
+      required:
+        - count
+        - similarCases
+      properties:
+        count:
+          type: integer
+          example: 3
+        similarCases:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimilarCase"
+
+    SimilarCase:
+      type: object
+      required:
+        - personId
+        - note
+        - similarity
+        - actionTaken
+      properties:
+        personId:
+          type: string
+          format: uuid
+        note:
+          type: string
+        similarity:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+        actionTaken:
+          type: string
+    PersonNoteRequest:
+      type: object
+      required: [note]
+      properties:
+        note:
+          type: string
+          minLength: 1
+          description: Internal note text
+
+    PersonBase:
+      type: object
+      required: [email, age, favoriteColor]
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          $ref: "#/components/schemas/PersonName"
+        age:
+          type: integer
+          minimum: 0
+        favoriteColor:
+          type: string
+          minLength: 1
+
+    PersonRequest:
+      allOf:
+        - $ref: "#/components/schemas/PersonBase"
+        - $ref: "#/components/schemas/PersonNoteRequest"
+
+    Person:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+        - $ref: "#/components/schemas/PersonBase"
+        - $ref: "#/components/schemas/PersonNoteRequest"
+        - type: object
+          properties:
+            noteTopic:
+              type: string
+              description: AI-detected topic (e.g. REFUND, SUPPORT)
+            noteSentiment:
+              type: string
+              description: AI-detected sentiment (POSITIVE, NEUTRAL, NEGATIVE)
+
+    PersonName:
+      type: object
+      required: [firstName]
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+        lastName:
+          type: string
+
+    PeoplePage:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Person"
+

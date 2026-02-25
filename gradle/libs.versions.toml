@@ -1,0 +1,35 @@
+[versions]
+sonarqube = "7.2.2.6593"
+spring-boot = "3.5.10"
+spring-dependency-management = "1.1.6"
+spring-ai = "1.0.3"
+mapstruct = "1.6.3"
+springdoc = "2.8.14"
+google-jib = "3.5.2"
+openapi-generator = "7.19.0"
+dependencycheck = "12.2.0"
+lombok-plugin = "9.2.0"
+spotless = "8.2.1"
+testcontainers = "1.21.4"
+
+[plugins]
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+google-jib = { id = "com.google.cloud.tools.jib", version.ref = "google-jib" }
+openapi-generator = { id = "org.openapi.generator", version.ref = "openapi-generator" }
+owasp-dependencycheck = { id = "org.owasp.dependencycheck", version.ref = "dependencycheck" }
+freefair-lombok = { id = "io.freefair.lombok", version.ref = "lombok-plugin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+
+[libraries]
+springdoc-openapi-webmvc-ui = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+mapstruct = { group = "org.mapstruct", name = "mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { group = "org.mapstruct", name = "mapstruct-processor", version.ref = "mapstruct" }
+spring-ai-bom = { group = "org.springframework.ai", name = "spring-ai-bom", version.ref = "spring-ai" }
+testcontainers-bom = { group = "org.testcontainers", name = "testcontainers-bom", version.ref = "testcontainers" }
+testcontainers-junit = { group = "org.testcontainers", name = "junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgresql = { group = "org.testcontainers", name = "postgresql", version.ref = "testcontainers" }
+
+[bundles]
+testcontainers = ["testcontainers-junit", "testcontainers-postgresql"]
