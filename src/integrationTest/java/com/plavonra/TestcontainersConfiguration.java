@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 @TestConfiguration(proxyBeanMethods = false)
-class TestcontainersConfiguration {
+public class TestcontainersConfiguration {
 
   @Bean
   @ServiceConnection
@@ -14,8 +14,6 @@ class TestcontainersConfiguration {
     return new PostgreSQLContainer<>("pgvector/pgvector:pg16")
         .withDatabaseName("testdb")
         .withUsername("test")
-        .withPassword("test")
-    //        .withInitScript("db/init_pgvector.sql")
-    ;
+        .withPassword("test");
   }
 }

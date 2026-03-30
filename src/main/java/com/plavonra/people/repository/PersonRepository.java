@@ -3,7 +3,7 @@ package com.plavonra.people.repository;
 import static com.plavonra.people.util.PersonConstants.*;
 
 import com.plavonra.people.entity.PersonEntity;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.NonNull;
@@ -37,6 +37,6 @@ public interface PersonRepository extends JpaRepository<PersonEntity, UUID> {
   @Modifying
   void softDeleteByPersonId(
       @Param(ID) @NonNull final UUID id,
-      @Param(LAST_MODIFIED_DATE) @NonNull final Date updatedDate,
+      @Param(LAST_MODIFIED_DATE) @NonNull final Instant updatedDate,
       @Param(LAST_MODIFIED_BY) @NonNull final String updatedBy);
 }

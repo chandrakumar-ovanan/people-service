@@ -2,7 +2,9 @@ package com.plavonra.people.mapper;
 
 import com.plavonra.people.entity.PersonEntity;
 import com.plavonra.people.entity.PersonNoteAnalysisEntity;
-import com.plavonra.services.people.api.model.*;
+import com.plavonra.services.people.api.model.PeoplePage;
+import com.plavonra.services.people.api.model.Person;
+import com.plavonra.services.people.api.model.PersonRequest;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,13 +1,6 @@
-server:
-  servlet.context-path: /${spring.application.name}
-  error:
-    include-stacktrace: never
-    whitelabel:
-      enabled: false
 management:
   server:
     port: 8181
-
   endpoint:
     health:
       show-details: always
@@ -19,41 +12,25 @@ management:
       enabled: true
     info:
       enabled: true
-
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus,loggers,threaddump
 
 spring:
-  threads:
-    virtual:
-      enabled: true
-  mvc.problemdetails:
-      enabled: true
   application:
     name: people-service
   datasource:
     url: ${SPRING_POSTGRES_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres}
     username: ${SPRING_POSTGRES_DATASOURCE_USERNAME:username}
     password: ${SPRING_POSTGRES_DATASOURCE_PASSWORD:password}
-
     driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none  # disable Hibernate
   sql:
     init:
-      mode: always
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    defer-datasource-initialization: true
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
-        jdbc:
-          time_zone: UTC
-
+      mode: always     # ❗ always run scripts
   ai:
     ollama:
       base-url: ${SPRING_AI_OLLAMA_BASE_URL:http://localhost:11436}
@@ -63,28 +40,37 @@ spring:
       embedding:
         options:
           model: nomic-embed-text
+    chat:
+      observations:
+        log-prompt: true
+        log-completion: true
+    #      client:
+    #        observations:
+    #          log-prompt: true
+    #          log-completion: true
     vectorstore:
       pgvector:
         schema-name: person
         table-name: person_note_embedding
         dimensions: 768
         remove-existing-vector-store-table: false
+plavonra:
+  ai:
+    langfuse:
+      prompts:
+        person-note-analysis-user:
+          primary: production
+          fallback: staging
+        person-note-analysis-system:
+          primary: production
+          fallback: staging
 ai:
   search:
     top-k: 5
     similarity-threshold: 0.55
-
-logging:
-  level:
-    org.springframework.ai.vectorstore.pgvector: DEBUG
-    org.springframework.jdbc.core: DEBUG
-    com.plavonra.person.PersonService: DEBUG
-    org.springframework.web: DEBUG
-
-springdoc:
-  paths-to-exclude: /error
-  swagger-ui:
-    path: /swagger-ui.html
-    query-config-enabled: false
-    csrf:
-      enabled: true
+server:
+  servlet.context-path: /${spring.application.name}
+  error:
+    include-stacktrace: never
+    whitelabel:
+      enabled: false

@@ -2,7 +2,8 @@ package com.plavonra.people.service;
 
 import static com.plavonra.common.audit.Action.CREATED;
 import static com.plavonra.common.audit.Action.UPDATED;
-import static com.plavonra.people.util.PersonErrorMessages.*;
+import static com.plavonra.people.util.PersonErrorMessages.ERROR_EMAIL_ALREADY_EXISTS;
+import static com.plavonra.people.util.PersonErrorMessages.ERROR_PERSON_NOT_FOUND;
 import static com.plavonra.people.validation.PageRequestValidator.validateRequest;
 import static com.plavonra.people.validation.PersonValidator.validatePerson;
 import static org.springframework.util.StringUtils.hasText;
@@ -20,7 +21,7 @@ import com.plavonra.services.people.api.model.PeoplePage;
 import com.plavonra.services.people.api.model.Person;
 import com.plavonra.services.people.api.model.PersonNoteRequest;
 import com.plavonra.services.people.api.model.PersonRequest;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -176,7 +177,7 @@ public class PersonService {
       log.warn("Auditor not resolved, using fallback");
     }
 
-    personRepository.softDeleteByPersonId(entity.getId(), new Date(), auditor);
+    personRepository.softDeleteByPersonId(entity.getId(), Instant.now(), auditor);
 
     log.info("Person deleted id={} by {}", entity.getId(), auditor);
   }

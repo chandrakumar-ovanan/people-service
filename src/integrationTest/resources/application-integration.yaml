@@ -1,0 +1,22 @@
+spring:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+# Integration tests should not depend on external telemetry backends.
+otel:
+  traces:
+    exporter: none
+  metrics:
+    exporter: none
+  logs:
+    exporter: none
+
+# Satisfy Langfuse autoconfiguration used by prompt resolver.
+# Tests don't call Langfuse unless you invoke AI flows explicitly.
+plavonra:
+  ai:
+    langfuse:
+      client:
+        base-url: ${PLAVONRA_AI_LANGFUSE_CLIENT_BASE_URL:https://cloud.langfuse.com}

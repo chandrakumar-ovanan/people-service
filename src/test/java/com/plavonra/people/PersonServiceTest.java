@@ -3,9 +3,7 @@ package com.plavonra.people;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.plavonra.error.ConflictException;
 import com.plavonra.error.FieldValidationException;
@@ -22,6 +20,7 @@ import com.plavonra.services.people.api.model.PeoplePage;
 import com.plavonra.services.people.api.model.Person;
 import com.plavonra.services.people.api.model.PersonNoteRequest;
 import com.plavonra.services.people.api.model.PersonRequest;
+import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -288,7 +287,7 @@ class PersonServiceTest {
 
       verify(personNoteAnalysisRepository).deleteByPerson_Id(id);
       verify(personNoteEmbeddingService).deleteEmbedding(id);
-      verify(personRepository).softDeleteByPersonId(eq(id), any(Date.class), eq("tester"));
+      verify(personRepository).softDeleteByPersonId(eq(id), any(Instant.class), eq("tester"));
     }
 
     @Test
@@ -302,7 +301,7 @@ class PersonServiceTest {
 
       verify(personNoteAnalysisRepository).deleteByPerson_Id(id);
       verify(personNoteEmbeddingService).deleteEmbedding(id);
-      verify(personRepository).softDeleteByPersonId(eq(id), any(Date.class), eq("unknown"));
+      verify(personRepository).softDeleteByPersonId(eq(id), any(Instant.class), eq("unknown"));
     }
 
     @Test

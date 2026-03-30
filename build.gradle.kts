@@ -1,30 +1,23 @@
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     java
-    id("idea")
-    `jvm-test-suite`
     jacoco
-    alias(libs.plugins.spring.boot)
-    alias(libs.plugins.spring.dependency.management)
+    `jvm-test-suite`
     alias(libs.plugins.google.jib)
-    alias(libs.plugins.openapi.generator)
-    alias(libs.plugins.sonarqube)
-    alias(libs.plugins.owasp.dependencycheck)
     alias(libs.plugins.freefair.lombok)
     alias(libs.plugins.spotless)
+    alias(libs.plugins.openapi.generator)
 }
 
-val testcontainersVersion = libs.versions.testcontainers.get()
-val jvmPreviewArg = "--enable-preview"
-
-repositories {
-    mavenCentral()
-}
+group = providers.gradleProperty("group").get()
+version = providers.gradleProperty("version").get()
+description = providers.gradleProperty("description").get()
 
 testing {
     suites {
-        val integrationTest = register<JvmTestSuite>("integrationTest") {
+        register<JvmTestSuite>("integrationTest") {
             useJUnitJupiter()
             dependencies {
                 implementation(project())
@@ -48,34 +41,81 @@ configurations {
     }
 }
 
-dependencies {
-    implementation(platform(libs.spring.ai.bom))
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation(libs.springdoc.openapi.webmvc.ui)
-    implementation("org.springframework.ai:spring-ai-starter-model-ollama")
-    implementation("org.springframework.ai:spring-ai-starter-vector-store-pgvector")
-    implementation("org.postgresql:postgresql")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    implementation(libs.mapstruct)
-    annotationProcessor(libs.mapstruct.processor)
-
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.boot:spring-boot-testcontainers")
-    testImplementation(platform(libs.testcontainers.bom))
-    testImplementation(libs.bundles.testcontainers)
+repositories {
+    mavenCentral()
+    maven {
+      url = uri("https://nexus.plavonra.com/repository/maven-online-public/")
+    }
 }
 
-configurations.testRuntimeClasspath {
-    resolutionStrategy.force(
-        "org.testcontainers:testcontainers:$testcontainersVersion",
-        "org.testcontainers:jdbc:$testcontainersVersion",
-        "org.testcontainers:database-commons:$testcontainersVersion"
-    )
+dependencies {
+    implementation(platform(libs.plavonra.spring.bom))
+    annotationProcessor(platform(libs.plavonra.spring.bom))
+
+    implementation("com.plavonra:plavonra-spring-ai-starter-langfuse")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.postgresql:postgresql")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui")
+
+    annotationProcessor("org.mapstruct:mapstruct-processor")
+    implementation("org.mapstruct:mapstruct")
+
+    implementation("org.springframework.ai:spring-ai-starter-model-ollama")
+    implementation("org.springframework.ai:spring-ai-starter-vector-store-pgvector")
+
+    runtimeOnly("io.micrometer:micrometer-tracing-bridge-otel")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation(libs.bundles.testcontainers)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    testLogging {
+        events(
+            TestLogEvent.PASSED,
+            TestLogEvent.SKIPPED,
+            TestLogEvent.FAILED,
+            TestLogEvent.STANDARD_OUT,
+            TestLogEvent.STANDARD_ERROR,
+        )
+        showStandardStreams = true
+    }
+}
+
+tasks.named<Test>("integrationTest") {
+    shouldRunAfter(tasks.test)
+}
+
+tasks.check {
+    dependsOn(tasks.named<Test>("integrationTest"))
+}
+
+tasks.matching { it.name == "spotlessJava" || it.name == "spotlessJavaApply" || it.name == "spotlessJavaCheck" }
+    .configureEach {
+        dependsOn(tasks.named("openApiGenerate"))
+    }
+
+spotless {
+    java {
+        googleJavaFormat()
+    }
+    format("gradle") {
+        target("*.gradle.kts", "settings.gradle.kts", "gradle/*.gradle.kts")
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    format("misc") {
+        target(".gitattributes", ".gitignore")
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 val openApiConfigOptions = mapOf(
@@ -92,56 +132,6 @@ val openApiConfigOptions = mapOf(
     "useSpringdocOpenApi" to "true",
     "useJakartaEe" to "true"
 )
-
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-    jvmArgs(jvmPreviewArg)
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.compilerArgs.add(jvmPreviewArg)
-}
-
-spotless.java {
-    googleJavaFormat()
-    targetExclude("build/**")
-}
-
-tasks.jacocoTestReport {
-    dependsOn(tasks.named("test"), tasks.named("integrationTest"))
-    reports {
-        xml.required = true
-        csv.required = true
-    }
-}
-
-sonarqube {
-    val testDirs = listOf("test", "integrationTest")
-        .mapNotNull { name ->
-            sourceSets.findByName(name)
-                ?.allSource
-                ?.srcDirs
-                ?.filter { it.exists() && it.name != "resources" }
-                ?.map { it.path }
-        }
-        .flatten()
-    properties {
-        if (testDirs.isNotEmpty()) {
-            properties["sonar.tests"] = testDirs.joinToString(",")
-        }
-        property("sonar.host.url", "http://localhost:9000")
-        property("sonar.token", findProperty("sonar.token") ?: "")
-        property("sonar.exclusions", "**/entity/**,**/model/**,**/build/generated/**")
-    }
-}
-
-tasks.named<JavaCompile>("compileJava") {
-    dependsOn(tasks.named("openApiGenerate"))
-}
-
 openApiGenerate {
     generatorName.set("spring")
     inputSpec.set(layout.projectDirectory.file("src/main/resources/openapi/people.yaml").asFile.path)
@@ -155,31 +145,25 @@ openApiGenerate {
 sourceSets.main {
     java.srcDir(layout.buildDirectory.dir("generated/src/main/java"))
 }
+tasks.named<JavaCompile>("compileJava") {
+    dependsOn(tasks.named("openApiGenerate"))
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.named("test"), tasks.named("integrationTest"))
+    reports {
+        xml.required = true
+        csv.required = true
+    }
+}
 
 jib {
-    val registry = "harbor.plavonra.com"
-    val baseImage = "$registry/platform-base/java:25-distroless"
-    val imageName = "$registry/apps/${project.name}:${project.version}"
-    val authUser = findProperty("harbor.username")?.toString() ?: System.getenv("HARBOR_USERNAME") ?: ""
-    val authPassword = findProperty("harbor.password")?.toString() ?: System.getenv("HARBOR_PASSWORD") ?: ""
-
+    val registry = "registry.plavonra.com"
     from {
-        image = baseImage
-        if (authUser.isNotEmpty()) {
-            auth {
-                username = authUser
-                password = authPassword
-            }
-        }
+        image = "$registry/platform-base/java:21-distroless"
     }
     to {
-        image = imageName
-        if (authUser.isNotEmpty()) {
-            auth {
-                username = authUser
-                password = authPassword
-            }
-        }
+        image =  "$registry/apps/${project.name}:${project.version}"
     }
     container {
         ports = listOf("8080")

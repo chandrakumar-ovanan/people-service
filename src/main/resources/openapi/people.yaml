@@ -323,7 +323,12 @@ components:
     PersonRequest:
       allOf:
         - $ref: "#/components/schemas/PersonBase"
-        - $ref: "#/components/schemas/PersonNoteRequest"
+        - type: object
+          properties:
+            note:
+              type: string
+              nullable: true
+              description: Internal note text (optional on create or full replace)
 
     Person:
       allOf:
@@ -333,7 +338,12 @@ components:
               type: string
               format: uuid
         - $ref: "#/components/schemas/PersonBase"
-        - $ref: "#/components/schemas/PersonNoteRequest"
+        - type: object
+          properties:
+            note:
+              type: string
+              nullable: true
+              description: Internal note text
         - type: object
           properties:
             noteTopic:

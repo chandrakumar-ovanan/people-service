@@ -1,6 +1,7 @@
 package com.plavonra.people.service;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 import com.plavonra.ai.embedding.VectorStoreService;

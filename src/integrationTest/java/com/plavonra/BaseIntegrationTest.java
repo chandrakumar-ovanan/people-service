@@ -1,16 +1,17 @@
 package com.plavonra;
 
-import com.plavonra.people.service.PersonService;
+import com.plavonra.integration.DatabaseResetExtension;
 import java.util.UUID;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.web.util.UriComponentsBuilder;
 
+@ExtendWith(DatabaseResetExtension.class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = PeopleServiceApplication.class)
@@ -24,8 +25,6 @@ public abstract class BaseIntegrationTest {
   @LocalServerPort protected int port;
 
   @Autowired protected TestRestTemplate restTemplate;
-
-  @MockitoSpyBean protected PersonService personService;
 
   protected String baseUrl() {
     return "http://localhost:" + port + CONTEXT_PATH;

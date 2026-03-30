@@ -1,6 +1,7 @@
 package com.plavonra.people.validation;
 
-import static com.plavonra.people.util.PersonErrorMessages.*;
+import static com.plavonra.people.util.PersonErrorMessages.ERROR_AGE_MUST_BE_AT_LEAST_18;
+import static com.plavonra.people.util.PersonErrorMessages.ERROR_EMAIL_INVALID_FORMAT;
 import static com.plavonra.util.CommonUtil.notValidateEmail;
 
 import com.plavonra.services.people.api.model.PersonRequest;
