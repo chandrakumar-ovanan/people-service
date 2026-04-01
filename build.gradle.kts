@@ -44,8 +44,9 @@ configurations {
 repositories {
     mavenCentral()
     maven {
-      url = uri("https://nexus.plavonra.com/repository/maven-online-public/")
+        url = uri("https://nexus.plavonra.com/repository/maven-online-public/")
     }
+
 }
 
 dependencies {
@@ -53,8 +54,10 @@ dependencies {
     annotationProcessor(platform(libs.plavonra.spring.bom))
 
     implementation("com.plavonra:plavonra-spring-ai-starter-langfuse")
+    implementation("com.plavonra:plavonra-spring-boot-starter-observability")
+
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -63,13 +66,13 @@ dependencies {
 
     annotationProcessor("org.mapstruct:mapstruct-processor")
     implementation("org.mapstruct:mapstruct")
+    runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.2.12.Final:osx-aarch_64")
 
     implementation("org.springframework.ai:spring-ai-starter-model-ollama")
     implementation("org.springframework.ai:spring-ai-starter-vector-store-pgvector")
 
-    runtimeOnly("io.micrometer:micrometer-tracing-bridge-otel")
-
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation(libs.bundles.testcontainers)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

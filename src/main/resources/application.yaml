@@ -16,7 +16,6 @@ management:
     web:
       exposure:
         include: health,info,metrics,prometheus,loggers,threaddump
-
 spring:
   application:
     name: people-service
@@ -30,7 +29,7 @@ spring:
       ddl-auto: none  # disable Hibernate
   sql:
     init:
-      mode: always     # ❗ always run scripts
+      mode: always     # always run scripts
   ai:
     ollama:
       base-url: ${SPRING_AI_OLLAMA_BASE_URL:http://localhost:11436}
@@ -44,10 +43,6 @@ spring:
       observations:
         log-prompt: true
         log-completion: true
-    #      client:
-    #        observations:
-    #          log-prompt: true
-    #          log-completion: true
     vectorstore:
       pgvector:
         schema-name: person

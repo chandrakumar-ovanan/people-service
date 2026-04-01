@@ -4,7 +4,7 @@ spotless = "8.4.0"
 openapi-generator = "7.19.0"
 
 google-jib = "3.5.2"
-plavonra-spring-bom = "0.0.3"
+plavonra-spring-bom = "0.0.4"
 
 [plugins]
 freefair-lombok = { id = "io.freefair.lombok", version.ref = "freefair-lombok" }
@@ -15,8 +15,8 @@ google-jib = { id = "com.google.cloud.tools.jib", version.ref = "google-jib" }
 [libraries]
 plavonra-spring-bom = { group = "com.plavonra", name = "plavonra-spring-bom", version.ref = "plavonra-spring-bom" }
 
-testcontainers-junit = { group = "org.testcontainers", name = "junit-jupiter" }
-testcontainers-postgresql = { group = "org.testcontainers", name = "postgresql"}
+testcontainers-junit = { group = "org.testcontainers", name = "testcontainers-junit-jupiter" }
+testcontainers-postgresql = { group = "org.testcontainers", name = "testcontainers-postgresql"}
 
 [bundles]
 testcontainers = ["testcontainers-junit", "testcontainers-postgresql"]

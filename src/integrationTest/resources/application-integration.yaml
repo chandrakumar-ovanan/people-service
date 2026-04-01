@@ -4,14 +4,13 @@ spring:
       mode: always
       schema-locations: classpath:schema.sql
 
-# Integration tests should not depend on external telemetry backends.
-otel:
-  traces:
-    exporter: none
-  metrics:
-    exporter: none
-  logs:
-    exporter: none
+# Also disable the Spring Boot OTLP management to be safe
+management:
+  otlp:
+    tracing:
+      endpoint: http://disabled
+  tracing:
+    enabled: false
 
 # Satisfy Langfuse autoconfiguration used by prompt resolver.
 # Tests don't call Langfuse unless you invoke AI flows explicitly.
